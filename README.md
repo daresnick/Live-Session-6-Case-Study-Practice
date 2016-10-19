@@ -1,6 +1,6 @@
 # Live-Session-6-Case-Study-Practice
-Group assignment for Doing Data Science
-author: "Matthew Thacker, Damon Resnick, Albert Alva"  
+Group assignment for Doing Data Science  
+"Matthew Thacker, Damon Resnick, Albert Alva"  
 "October 19, 2016"
 
 This is a live session assignment and practice for the Case Study Assignemnt I.
