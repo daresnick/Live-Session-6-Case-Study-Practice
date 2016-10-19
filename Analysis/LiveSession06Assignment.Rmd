@@ -1,0 +1,185 @@
+---
+title: "Live Session 6 Case Study Practice"
+author: "Matthew Thacker and Damon Resnick"
+date: "October 19, 2016"
+output:
+  html_document:
+    keep_md: yes
+  pdf_document: default
+  word_document: default
+---
+
+This is a live session assignment and practice for the Case Study Assignemnt I.
+
+The goal is to learn more about reproducable research by getting and cleaning data, creating an RStudio project,
+and doing analysis with documentation that will help the researcher and other researchers in the future.
+
+This project will include a README file, a data directory, an analysis directory, a paper directory, and a link to the an online repository in GitHub.
+
+The data was taken from the Rolling Housing Sales for NYC:
+
+http://www1.nyc.gov/home/search/index.page?search-terms=Rolling+sales+update
+
+Our assignment was to look at the data for the borough of Manhattan.
+
+The original code that this project is based off of was presented by the
+
+#### Original Author: Benjamin Reddy
+
+Taken from pages 49-50 of O'Neil and Schutt
+
+require(gdata)
+
+require(plyr) #Added by Monnie McGee
+
+Install the gdata and plyr packages and set working directory in R.
+
+```{r, message=FALSE}
+library(plyr)
+library(gdata)
+setwd("C:/Users/hp/Desktop/SMU/Doing Data Science/Live Classes/Unit 7")
+```
+.
+
+You need a perl interpreter to load an xls file in Windows.
+It's automatic in Mac
+mn <- read.xls("rollingsales_brooklyn.xls",pattern="BOROUGH")
+
+
+So we will save the file as a csv and use read.csv instead:
+
+```{r}
+mn <- read.csv("./data/rollingsales_manhattan.csv",skip=4,header=TRUE)
+```
+.
+
+
+#### Check the data:
+
+```{r}
+head(mn, 3)
+tail(mn, 3)
+summary(mn)
+str(mn) # This is a very handy function in R! Displays the structure of an object.
+```
+.
+
+
+Next up is to clean/format the data with regular expressions.  More on these later.
+For now, know that the pattern "[^[:digit:]]" refers to members of the variable name that start with digits.
+We will use the gsub command to replace them with a blank space.
+
+We then create a new variable that is a "clean" version of sale.price; we make sale.price.n numeric, not a factor.
+
+#### This means that we replaced the -'s with NA and made a new column called SALE.PRICE.N so that R can deal with the data better.
+The gsub() function is useful for finding and replacing characters.
+Counting the data use the count() function helps to tell how many numeric values and NAs there are in SALE.PRICE.N.
+
+```{r}
+mn$SALE.PRICE.N <- as.numeric(gsub("[^[:digit:]]","", mn$SALE.PRICE))
+count(is.na(mn$SALE.PRICE.N))
+```
+.
+
+
+The names() function makes all variable names lower case.
+
+```{r}
+names(mn) <- tolower(names(mn))
+```
+.
+
+
+#### Get rid of leading digits
+The frst 2 lines of the code below will again replace '-' with NA in R so that missing data will not throw off the analysis.
+
+```{r}
+mn$gross.sqft <- as.numeric(gsub("[^[:digit:]]","", mn$gross.square.feet))
+mn$land.sqft <- as.numeric(gsub("[^[:digit:]]","", mn$land.square.feet))
+mn$year.built <- as.numeric(as.character(mn$year.built))
+```
+.
+
+
+#### Here we do a bit of exploration to make sure there's not anything weird going on with sale prices
+Attaching 'mn' means that the commands after will automatically reference this data without needing to specify 'mn' for each command.
+
+```{r}
+attach(mn)
+hist(sale.price.n) #Something is wrong! The histogram shows that most sales seem to be close to $0.
+detach(mn)
+```
+.
+
+
+#### Keep only the actual sales
+[columns,rows]
+This will create a data table called mn.sale from mn.  This identifies 0's (no given price) within the sale.price column and converts the entire observation to NA. This allows R to ignore those observations when performing analysis on the sale data.
+
+```{r}
+mn.sale <- mn[mn$sale.price.n!=0,]
+```
+.
+
+
+#### Create a scatterplot of the mn.sale data when compared to sq. footage.
+
+```{r}
+plot(mn.sale$gross.sqft,mn.sale$sale.price.n)
+```
+.
+
+
+#### Perform a log base 10 transformation of the data and create a new scatterplot.
+
+```{r}
+plot(log10(mn.sale$gross.sqft),log10(mn.sale$sale.price.n))
+```
+.
+
+
+#### Let's look at 1, 2, and 3-family homes
+This creates a new data table called mn.homes, which provides a list of family homes.
+It accomplishes this by searching for the term 'family' within mn.sale building class and passes it to mn.homes.
+
+```{r}
+mn.homes <- mn.sale[which(grepl("FAMILY",mn.sale$building.class.category)),]
+```
+.
+
+
+Look at the dimensions for the mn.homes object (observations and variables)
+
+```{r}
+dim(mn.homes)
+```
+.
+
+
+#### Plot the log10 of sale.price vs. gross.sqft and look at the summary of sale.price
+
+```{r}
+plot(log10(mn.homes$gross.sqft),log10(mn.homes$sale.price.n))
+summary(mn.homes[which(mn.homes$sale.price.n<100000),])
+```
+.
+
+
+#### Remove outliers that seem like they weren't actual sales and show the plot
+
+```{r}
+mn.homes$outliers <- (log10(mn.homes$sale.price.n) <=5) + 0
+mn.homes <- mn.homes[which(mn.homes$outliers==0),]
+plot(log(mn.homes$gross.sqft),log(mn.homes$sale.price.n))
+```
+.
+
+
+#### Create a .csv file called "cleaned_rollingsales_manhattan.csv" to save the cleaned data
+
+```{r}
+write.csv(mn.homes, "cleaned_rollingsales_manhattan.csv", row.names = TRUE)
+```
+
+
+
