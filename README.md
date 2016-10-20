@@ -3,7 +3,7 @@ Group assignment for Doing Data Science
 "Matthew Thacker, Damon Resnick, Albert Alva"  
 "October 19, 2016"
 
-This is a live session assignment and practice for the Case Study Assignemnt I.
+This is a live session assignment and practice for the Case Study Assignment I.
 
 The goal is to learn more about reproducable research by getting and cleaning data, creating an RStudio project,
 and doing analysis with documentation that will help the researcher and other researchers in the future.
